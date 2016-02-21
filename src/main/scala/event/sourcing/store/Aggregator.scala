@@ -23,8 +23,13 @@ object Aggregator {
     createAccount(entityId).replayEvents(toReplay)
   }
 
-  def updateAccount(entityId: EntityId, event: Event): Unit =
+  /**
+    * Store the new event and replay.
+    */
+  def updateAccount(entityId: EntityId, event: Event): Account = {
     eventStore.save(entityId, event)
+    createAccount(entityId).replayEvents(eventStore.findOrCreate(entityId))
+  }
 
   /**
     * Helper method.

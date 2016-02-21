@@ -16,5 +16,15 @@ class AccountServiceSpec extends WordSpecLike with Matchers with CommonSpec {
       // check that events are replayed.
       replayedAccount.balance should be(100)
     }
+
+    "correctly credit an account" in new TestContext {
+      val account = AccountService.openAccount(100)
+      AccountService.creditAccount(account.entityId, 50).balance should be(50)
+
+      intercept[IllegalArgumentException] {
+        val emptyAccount = AccountService.openAccount(0)
+        AccountService.creditAccount(emptyAccount.entityId, 50)
+      }
+    }
   }
 }

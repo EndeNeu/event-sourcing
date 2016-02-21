@@ -8,5 +8,7 @@ package object sourcing {
 
   type HandleCommand[T] = PartialFunction[Event, T]
   type EntityId = UUID
+  type EventId = UUID
+
 
 }
