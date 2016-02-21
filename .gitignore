@@ -1,0 +1,29 @@
+# Intellij
+.idea
+/.idea/
+.idea_modules
+.vagrant
+*.iml
+
+# Generated files
+*.class
+*.log
+.idea_modules
+.vagrant
+*.class
+*.log
+/project/plugins/project
+target/
+lib_managed/
+src_managed/
+test-output/
+/snapshots/
+.history
+
+# Misc.
+.DS_Store
+*.swp
+*.ipr
+*.iws
+version.txt
+*.dylib
