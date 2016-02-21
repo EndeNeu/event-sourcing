@@ -12,7 +12,7 @@ class AccountServiceSpec extends WordSpecLike with Matchers with CommonSpec {
       account.balance should be(100)
 
       // re-find tha previous account
-      val replayedAccount = Aggregator.findOrCreateAccount(account.entityId)
+      val replayedAccount = AccountService.findAccount(account.entityId)
       // check that events are replayed.
       replayedAccount.balance should be(100)
     }
@@ -32,7 +32,7 @@ class AccountServiceSpec extends WordSpecLike with Matchers with CommonSpec {
       AccountService.creditAccount(account.entityId, 50).balance should be(150)
 
       // re-find tha previous account
-      val replayedAccount = Aggregator.findOrCreateAccount(account.entityId)
+      val replayedAccount = AccountService.findAccount(account.entityId)
       // check that events are replayed.
       replayedAccount.balance should be(150)
     }

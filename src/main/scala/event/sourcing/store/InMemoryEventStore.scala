@@ -11,16 +11,25 @@ class InMemoryEventStore extends EventStore {
   private lazy val events = mutable.HashMap.empty[EntityId, List[Event]]
 
   /**
-    * if the entity is in the map, update that entity events with this new event
+    * if the entity is in the map, append the event to the events
     * else create a new entity.
     */
-  override def save(entityId: EntityId, event: Event): Unit =
+  override def save(entityId: EntityId, event: Event): List[Event] =
     events.get(entityId) match {
-      case Some(evs) => events.put(entityId, evs :+ event)
-      case None => events.put(entityId, List(event))
+      case Some(evs) =>
+        val newEvents = evs :+ event
+        events.put(entityId, newEvents)
+        newEvents
+      case None =>
+        events.put(entityId, List(event))
+        List(event)
     }
 
-  override def findOrCreate(entityId: EntityId): List[Event] = {
+  /**
+    * Find all the events for a entity, if the entity is not in the map
+    * it gets added.
+    */
+  override def find(entityId: EntityId): List[Event] = {
     events.get(entityId) match {
       case Some(evs) =>
         evs

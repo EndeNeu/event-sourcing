@@ -8,8 +8,10 @@ import event.sourcing.domain.Event
   */
 trait EventStore {
 
-  def save(entityId: EntityId, event: Event): Unit
+  // Store an event
+  def save(entityId: EntityId, event: Event): List[Event]
 
-  def findOrCreate(entityId: EntityId): List[Event]
+  // Find an event
+  def find(entityId: EntityId): List[Event]
 
 }

@@ -3,7 +3,6 @@ package event.sourcing.store
 import java.util.UUID
 
 import event.sourcing.EntityId
-import event.sourcing.domain.AccountEvents.OpenAccountEvent
 import event.sourcing.domain.Event
 import event.sourcing.handler.Account
 
@@ -16,20 +15,16 @@ object Aggregator {
   private lazy val eventStore: EventStore = new InMemoryEventStore
 
   /**
-    * find an account by entity in the event store, create one and replay all the events.
+    * find all the events for an entity
     */
-  def findOrCreateAccount(entityId: EntityId): Account = {
-    val toReplay = eventStore.findOrCreate(entityId)
-    createAccount(entityId).replayEvents(toReplay)
-  }
+  def find(entityId: EntityId): List[Event] =
+    eventStore.find(entityId)
 
   /**
-    * Store the new event and replay.
+    * Store the new event and return all the events.
     */
-  def updateAccount(entityId: EntityId, event: Event): Account = {
+  def update(entityId: EntityId, event: Event): List[Event] =
     eventStore.save(entityId, event)
-    createAccount(entityId).replayEvents(eventStore.findOrCreate(entityId))
-  }
 
   /**
     * Helper method.
