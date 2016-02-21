@@ -6,8 +6,10 @@ import org.scalatest.{Matchers, WordSpecLike}
 class AggregatorSpec extends WordSpecLike with Matchers with CommonSpec {
 
   "the aggregator" should {
-    "correctly create an account" in new TestContext {
-      Aggregator.find(entityId) should be(List())
+    "correctly throw on non existent entities" in new TestContext {
+      intercept[IllegalArgumentException] {
+        Aggregator.find(entityId) should be(List())
+      }
     }
     "correctly update an account" in new TestContext {
       Aggregator.update(entityId, openAccountEvent)

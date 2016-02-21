@@ -1,7 +1,8 @@
 package event.sourcing
 
+import java.util.UUID
+
 import event.sourcing.service.AccountService
-import event.sourcing.store.Aggregator
 import org.scalatest.{Matchers, WordSpecLike}
 
 class AccountServiceSpec extends WordSpecLike with Matchers with CommonSpec {
@@ -10,8 +11,14 @@ class AccountServiceSpec extends WordSpecLike with Matchers with CommonSpec {
     "correctly open/restore an account" in new TestContext {
       val account = AccountService.openAccount(100)
       account.balance should be(100)
+    }
 
-      // re-find tha previous account
+    "correctly find an account" in new TestContext {
+      intercept[IllegalArgumentException] {
+        AccountService.findAccount(UUID.randomUUID())
+      }
+
+      val account = AccountService.openAccount(100)
       val replayedAccount = AccountService.findAccount(account.entityId)
       // check that events are replayed.
       replayedAccount.balance should be(100)

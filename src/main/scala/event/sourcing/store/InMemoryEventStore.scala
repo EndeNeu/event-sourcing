@@ -27,15 +27,13 @@ class InMemoryEventStore extends EventStore {
 
   /**
     * Find all the events for a entity, if the entity is not in the map
-    * it gets added.
+    * an exception is thrown.
     */
   override def find(entityId: EntityId): List[Event] = {
     events.get(entityId) match {
-      case Some(evs) =>
-        evs
-      case None =>
-        events.put(entityId, List())
-        List()
+      case Some(evs) => evs
+      case None => throw new IllegalArgumentException("Entity doesn't exists.")
+
     }
   }
 }

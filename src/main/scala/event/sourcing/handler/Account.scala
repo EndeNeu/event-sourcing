@@ -5,6 +5,8 @@ import event.sourcing.{EntityId, HandleCommand}
 
 class Account(val entityId: EntityId, val balance: Long) extends EventHandlerLike[Account] {
 
+  def this(entityId: EntityId) = this(entityId, 0)
+
   /**
     * Event handling.
     */
