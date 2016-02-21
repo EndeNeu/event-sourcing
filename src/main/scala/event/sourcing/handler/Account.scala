@@ -1,12 +1,9 @@
 package event.sourcing.handler
 
 import event.sourcing.domain.AccountEvents.{CreditAccount, DebitAccount, OpenAccountEvent}
-import event.sourcing.domain.Event
 import event.sourcing.{EntityId, HandleCommand}
 
-import scala.annotation.tailrec
-
-class Account(val entityId: EntityId, val balance: Long) extends EventHandler[Account] {
+class Account(val entityId: EntityId, val balance: Long) extends EventHandlerLike[Account] {
 
   /**
     * Event handling.
@@ -20,12 +17,4 @@ class Account(val entityId: EntityId, val balance: Long) extends EventHandler[Ac
       new Account(entityId, balance + msg.credit)
   }
 
-  /**
-    * Replay an array of events recursively.
-    */
-  @tailrec
-  override final def replayEvents(events: List[Event]): Account = events match {
-    case event :: tail => handleEvent(event).replayEvents(tail)
-    case Nil => this
-  }
 }

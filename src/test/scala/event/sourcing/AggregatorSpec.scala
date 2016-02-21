@@ -10,11 +10,11 @@ class AggregatorSpec extends WordSpecLike with Matchers with CommonSpec {
       Aggregator.find(entityId) should be(List())
     }
     "correctly update an account" in new TestContext {
-      Aggregator.update(entityId, event)
-      Aggregator.find(entityId) should be(List(event))
-      Aggregator.update(entityId, event2)
-      Aggregator.update(entityId, event3)
-      Aggregator.find(entityId) should be(List(event, event2, event3))
+      Aggregator.update(entityId, openAccountEvent)
+      Aggregator.find(entityId) should be(List(openAccountEvent))
+      Aggregator.update(entityId, creditAccountEvent)
+      Aggregator.update(entityId, debitAccountEvent)
+      Aggregator.find(entityId) should be(List(openAccountEvent, creditAccountEvent, debitAccountEvent))
     }
   }
 }

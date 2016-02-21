@@ -15,12 +15,12 @@ class InMemoryEventStoreSpec extends WordSpecLike with Matchers with CommonSpec 
 
   "InMemoryEventStore" should {
     "correctly store and find an event" in new TestContext {
-      store.save(entityId, event)
+      store.save(entityId, openAccountEvent)
 
-      store.find(entityId).head should be(event)
-      store.save(entityId, event2)
-      store.save(entityId, event3)
-      store.find(entityId) should be(List(event, event2, event3))
+      store.find(entityId).head should be(openAccountEvent)
+      store.save(entityId, creditAccountEvent)
+      store.save(entityId, debitAccountEvent)
+      store.find(entityId) should be(List(openAccountEvent, creditAccountEvent, debitAccountEvent))
     }
   }
 }
