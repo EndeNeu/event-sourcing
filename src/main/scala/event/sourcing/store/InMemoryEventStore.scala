@@ -1,15 +1,14 @@
 package event.sourcing.store
 
 import event.sourcing.EntityId
-import event.sourcing.domain.AccountEvents.OpenAccountEvent
 import event.sourcing.domain.Event
 
 import scala.collection.mutable
 
 class InMemoryEventStore extends EventStore {
 
-  // map a entity id to a list of events.
-  val events = mutable.HashMap.empty[EntityId, List[Event]]
+  // map a entity id to a list of events. TODO use TreeSet for sorted events
+  private lazy val events = mutable.HashMap.empty[EntityId, List[Event]]
 
   /**
     * if the entity is in the map, update that entity events with this new event
