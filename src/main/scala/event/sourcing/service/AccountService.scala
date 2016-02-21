@@ -3,7 +3,7 @@ package event.sourcing.service
 import java.util.UUID
 
 import event.sourcing.EntityId
-import event.sourcing.domain.AccountEvents.{CreditAccount, OpenAccountEvent}
+import event.sourcing.domain.AccountEvents.{CreditAccount, DebitAccount, OpenAccountEvent}
 import event.sourcing.handler.Account
 import event.sourcing.store.Aggregator
 
@@ -21,10 +21,21 @@ object AccountService {
     Aggregator.updateAccount(accountId, OpenAccountEvent(UUID.randomUUID(), initialBalance))
   }
 
-  def creditAccount(accountId: EntityId, credit: Long): Account = {
+  /**
+    * Decrease the balance of an account.
+    */
+  @throws[IllegalArgumentException]("Cannot have a negative balance.")
+  def debitAccount(accountId: EntityId, debit: Long): Account = {
     val account = Aggregator.findOrCreateAccount(accountId)
 
-    if(account.balance < credit) throw new IllegalArgumentException("Not enough money")
-    else Aggregator.updateAccount(account.entityId, CreditAccount(UUID.randomUUID(), credit))
+    if(account.balance < debit) throw new IllegalArgumentException("Not enough money")
+    else Aggregator.updateAccount(account.entityId, DebitAccount(UUID.randomUUID(), debit))
+  }
+
+  /**
+    * Increase an account balance.
+    */
+  def creditAccount(accountId: EntityId, credit: Long): Account = {
+    Aggregator.updateAccount(accountId, CreditAccount(UUID.randomUUID(), credit))
   }
 }

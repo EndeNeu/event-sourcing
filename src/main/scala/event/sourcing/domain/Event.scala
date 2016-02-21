@@ -18,5 +18,6 @@ trait Event {
   */
 object AccountEvents {
   case class OpenAccountEvent(id: EventId, initialBalance: Long, ts: Long = DateTime.now.getMillis) extends Event
+  case class DebitAccount(id: EventId, debit: Long, ts: Long = DateTime.now.getMillis) extends Event
   case class CreditAccount(id: EventId, credit: Long, ts: Long = DateTime.now.getMillis) extends Event
 }

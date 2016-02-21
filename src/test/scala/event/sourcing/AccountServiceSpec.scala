@@ -17,14 +17,24 @@ class AccountServiceSpec extends WordSpecLike with Matchers with CommonSpec {
       replayedAccount.balance should be(100)
     }
 
-    "correctly credit an account" in new TestContext {
+    "correctly debit an account" in new TestContext {
       val account = AccountService.openAccount(100)
-      AccountService.creditAccount(account.entityId, 50).balance should be(50)
+      AccountService.debitAccount(account.entityId, 50).balance should be(50)
 
       intercept[IllegalArgumentException] {
         val emptyAccount = AccountService.openAccount(0)
-        AccountService.creditAccount(emptyAccount.entityId, 50)
+        AccountService.debitAccount(emptyAccount.entityId, 50)
       }
+    }
+
+    "correctly credit an account" in new TestContext {
+      val account = AccountService.openAccount(100)
+      AccountService.creditAccount(account.entityId, 50).balance should be(150)
+
+      // re-find tha previous account
+      val replayedAccount = Aggregator.findOrCreateAccount(account.entityId)
+      // check that events are replayed.
+      replayedAccount.balance should be(150)
     }
   }
 }
