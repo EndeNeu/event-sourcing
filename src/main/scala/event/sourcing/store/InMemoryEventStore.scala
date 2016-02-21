@@ -1,18 +1,33 @@
 package event.sourcing.store
 
-import java.util.UUID
-
+import event.sourcing.EntityId
+import event.sourcing.domain.AccountEvents.OpenAccountEvent
 import event.sourcing.domain.Event
 
 import scala.collection.mutable
 
 class InMemoryEventStore extends EventStore {
 
-  val events = mutable.HashMap.empty[UUID, Event]
+  // map a entity id to a list of events.
+  val events = mutable.HashMap.empty[EntityId, List[Event]]
 
-  override def save(event: Event): Event =
-    events.put(event.id, event).getOrElse(event)
+  /**
+    * if the entity is in the map, update that entity events with this new event
+    * else create a new entity.
+    */
+  override def save(entityId: EntityId, event: Event): Unit =
+    events.get(entityId) match {
+      case Some(evs) => events.put(entityId, evs :+ event)
+      case None => events.put(entityId, List(event))
+    }
 
-  override def find(id: UUID): Option[Event] =
-    events.get(id)
+  override def findOrCreate(entityId: EntityId): List[Event] = {
+    events.get(entityId) match {
+      case Some(evs) =>
+        evs
+      case None =>
+        events.put(entityId, List())
+        List()
+    }
+  }
 }

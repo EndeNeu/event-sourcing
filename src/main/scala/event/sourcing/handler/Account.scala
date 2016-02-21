@@ -1,11 +1,29 @@
 package event.sourcing.handler
 
+import java.util.UUID
+
 import event.sourcing.HandleCommand
-import event.sourcing.store.Aggregator
+import event.sourcing.domain.AccountEvents.OpenAccountEvent
+import event.sourcing.domain.Event
 
-class Account(aggregator: Aggregator) extends EventHandler[Account] {
+import scala.annotation.tailrec
 
-  def handleCommand: HandleCommand[Account] = {
-    case _ => this
+class Account(val entityId: UUID, val balance: Long) extends EventHandler[Account] {
+
+  /**
+    * Event handling.
+    */
+  def handleEvent: HandleCommand[Account] = {
+    case msg: OpenAccountEvent =>
+      new Account(entityId, msg.initialBalance)
+  }
+
+  /**
+    * Replay an array of events recursively.
+    */
+  @tailrec
+  final def replayEvents(events: List[Event]): Account = events match {
+    case event :: tail => handleEvent(event).replayEvents(tail)
+    case Nil => this
   }
 }
