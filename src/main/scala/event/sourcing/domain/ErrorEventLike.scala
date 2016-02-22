@@ -8,5 +8,5 @@ import org.joda.time.DateTime
   */
 trait ErrorEventLike extends EventLike
 
-case class AccountInsufficientFoundEvent(val id: EventId, val entityId: EntityId, ts: Long = DateTime.now.getMillis) extends ErrorEventLike
-case class AccountInsufficientFoundFromTransactionEvent(val id: EventId, val entityId: EntityId, transactionId: EntityId, ts: Long = DateTime.now.getMillis) extends ErrorEventLike
+case class AccountInsufficientFoundEvent(val entityId: EntityId) extends ErrorEventLike
+case class AccountInsufficientFoundFromTransactionEvent(val entityId: EntityId, transactionId: EntityId) extends ErrorEventLike

@@ -30,7 +30,7 @@ object Aggregator {
   /**
     * Store a list of events and return all the events.
     */
-  def update(event: List[EventLike]): List[EventLike] =
-    event.flatMap(e => eventStore.update(e))
+  def update(events: List[EventLike]): List[EventLike] =
+    events.flatMap(e => eventStore.update(e))
 
 }

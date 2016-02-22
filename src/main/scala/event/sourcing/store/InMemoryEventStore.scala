@@ -29,12 +29,12 @@ class InMemoryEventStore extends EventStoreLike {
         val newEvents = evs :+ event
         events.put(event.entityId, newEvents)
         notifyListeners(event)
-        newEvents.sortBy(_.ts)
+        newEvents
       case None =>
         val newEvents = List(event)
         events.put(event.entityId, newEvents)
         notifyListeners(event)
-        newEvents.sortBy(_.ts)
+        newEvents
     }
 
   /**

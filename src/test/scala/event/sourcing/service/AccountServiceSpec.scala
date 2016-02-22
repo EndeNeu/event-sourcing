@@ -3,8 +3,7 @@ package event.sourcing.service
 import java.util.UUID
 
 import event.sourcing.CommonSpec
-import event.sourcing.domain.AccountCommands.AccountOpenCommand
-import event.sourcing.domain.AccountInsufficientFoundEvent
+import event.sourcing.domain.AccountCommands.{AccountDebitCommand, AccountOpenCommand}
 import org.scalatest.{Matchers, WordSpecLike}
 
 class AccountServiceSpec extends WordSpecLike with Matchers with CommonSpec {
@@ -27,8 +26,8 @@ class AccountServiceSpec extends WordSpecLike with Matchers with CommonSpec {
     }
 
     "correctly debit an account" in new TestContext {
-      val account = AccountService.openAccount(accountOpenCommand)
-      AccountService.debitAccount(account.entityId, accountDebitCommand).balance should be(50)
+      val account = AccountService.openAccount(AccountOpenCommand(100))
+      AccountService.debitAccount(account.entityId, AccountDebitCommand(50)).balance should be(50)
     }
 
     "correctly credit an account" in new TestContext {

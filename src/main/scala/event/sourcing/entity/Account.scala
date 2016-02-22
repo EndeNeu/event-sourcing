@@ -1,7 +1,5 @@
 package event.sourcing.entity
 
-import java.util.UUID
-
 import event.sourcing.domain.AccountCommands._
 import event.sourcing.domain.AccountEvents._
 import event.sourcing.domain.{AccountInsufficientFoundEvent, AccountInsufficientFoundFromTransactionEvent}
@@ -9,7 +7,7 @@ import event.sourcing.{EntityId, HandleCommand, HandleEvent}
 
 import scalaz.{-\/, \/-}
 
-class Account private (val entityId: EntityId, val balance: Long) extends EventHandlerLike[Account] {
+class Account private(val entityId: EntityId, val balance: Long) extends EventHandlerLike[Account] {
 
   def this(entityId: EntityId) = this(entityId, null.asInstanceOf[Long])
 
@@ -17,22 +15,22 @@ class Account private (val entityId: EntityId, val balance: Long) extends EventH
     * Command handler, a response to a command is a list of events.
     */
   override def handleCommand: HandleCommand = {
-    case msg: AccountOpenCommand =>
-      \/-(List(AccountOpenEvent(UUID.randomUUID(), entityId, msg.initialBalance)))
+    case AccountOpenCommand(initialBalance) =>
+      \/-(List(AccountOpenEvent(entityId, initialBalance)))
 
-    case msg: AccountDebitCommand =>
-      if (balance > msg.debit) \/-(List(AccountDebitEvent(UUID.randomUUID(), entityId, msg.debit)))
-      else -\/(AccountInsufficientFoundEvent(UUID.randomUUID(), entityId))
+    case AccountDebitCommand(debit) =>
+      if (balance > debit) \/-(List(AccountDebitEvent(entityId, debit)))
+      else -\/(AccountInsufficientFoundEvent(entityId))
 
-    case msg: AccountCreditCommand =>
-      \/-(List(AccountCreditEvent(UUID.randomUUID(), entityId, msg.credit)))
+    case AccountCreditCommand(credit) =>
+      \/-(List(AccountCreditEvent(entityId, credit)))
 
-    case msg: AccountDebitFromTransactionCommand =>
-      if (balance > msg.debit) \/-(List(AccountDebitFromTransferEvent(UUID.randomUUID(), entityId, msg.transactionId, msg.debit)))
-      else -\/(AccountInsufficientFoundFromTransactionEvent(UUID.randomUUID(), entityId, msg.transactionId))
+    case AccountDebitFromTransactionCommand(transactionId, debit) =>
+      if (balance > debit) \/-(List(AccountDebitFromTransferEvent(entityId, transactionId, debit)))
+      else -\/(AccountInsufficientFoundFromTransactionEvent(entityId, transactionId))
 
-    case msg: AccountCreditFromTransactionCommand =>
-      \/-(List(AccountCreditFromTransferEvent(UUID.randomUUID(), entityId, msg.transactionId, msg.credit)))
+    case AccountCreditFromTransactionCommand(transactionId, credit) =>
+      \/-(List(AccountCreditFromTransferEvent(entityId, transactionId, credit)))
 
     case _ =>
       throw new IllegalArgumentException("Unknown command in account.")
@@ -42,20 +40,20 @@ class Account private (val entityId: EntityId, val balance: Long) extends EventH
     * Event handler, a response to an event is a copy of this object
     */
   override def handleEvent: HandleEvent[Account] = {
-    case msg: AccountOpenEvent =>
-      new Account(entityId, msg.initialBalance)
+    case AccountOpenEvent(_, initialBalance) =>
+      new Account(entityId, initialBalance)
 
-    case msg: AccountCreditEvent =>
-      new Account(entityId, balance + msg.credit)
+    case AccountCreditEvent(_, credit) =>
+      new Account(entityId, balance + credit)
 
-    case msg: AccountDebitEvent =>
-      new Account(entityId, balance - msg.debit)
+    case AccountDebitEvent(_, debit) =>
+      new Account(entityId, balance - debit)
 
-    case msg: AccountCreditFromTransferEvent =>
-      new Account(entityId, balance + msg.credit)
+    case AccountCreditFromTransferEvent(_, _, credit) =>
+      new Account(entityId, balance + credit)
 
-    case msg: AccountDebitFromTransferEvent =>
-      new Account(entityId, balance - msg.debit)
+    case AccountDebitFromTransferEvent(_, _, debit) =>
+      new Account(entityId, balance - debit)
 
     case msg: AccountInsufficientFoundEvent =>
       this

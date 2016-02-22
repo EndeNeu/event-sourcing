@@ -18,7 +18,7 @@ class TransactionSpec extends WordSpecLike with Matchers with CommonSpec {
       newTransaction.state should be(createTransactionEvent.state)
 
 
-      val newTransaction2 = newTransaction.handleEvent(TransactionExecutedEvent(UUID.randomUUID(), entityId, TransactionInProgressState))
+      val newTransaction2 = newTransaction.handleEvent(TransactionExecutedEvent(entityId, TransactionInProgressState))
       newTransaction2.amount should be(5)
       newTransaction2.from.balance should be(a1.balance)
       newTransaction2.from.entityId should be(a1.entityId)

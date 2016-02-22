@@ -18,16 +18,16 @@ import scalaz.{\/, \/-}
 class SimpleEventListener extends EventListenerLike {
 
   override def notifyEvent(e: EventLike): Unit = e match {
-    case TransactionInProgressEvent(_, entityId, from, to, amount, _, _) =>
+    case TransactionInProgressEvent(entityId, from, to, amount, _) =>
       val result: \/[ErrorEventLike, Transaction] = for {
-        debit <- AccountService.debitAccountFromTransfer(from.entityId, AccountDebitFromTransactionCommand(UUID.randomUUID(), entityId, amount))
-        credit <- AccountService.creditAccountFromTransfer(to.entityId, AccountCreditFromTransactionCommand(UUID.randomUUID(), entityId, amount))
-        transactionCompleted <- \/-(TransactionService.completeTransaction(entityId, TransactionCompleteCommand(UUID.randomUUID())))
+        debit <- AccountService.debitAccountFromTransfer(from.entityId, AccountDebitFromTransactionCommand(entityId, amount))
+        credit <- AccountService.creditAccountFromTransfer(to.entityId, AccountCreditFromTransactionCommand(entityId, amount))
+        transactionCompleted <- \/-(TransactionService.completeTransaction(entityId, TransactionCompleteCommand()))
       } yield transactionCompleted
 
       // in case an error occurred update the account and the transaction with the failure
       result.leftMap(errorEvent =>
-        Aggregator.update(List(errorEvent, TransactionFailedEvent(UUID.randomUUID(), entityId, TransactionFailedState)))
+        Aggregator.update(List(errorEvent, TransactionFailedEvent(entityId, TransactionFailedState)))
       )
 
     // ignore other events
