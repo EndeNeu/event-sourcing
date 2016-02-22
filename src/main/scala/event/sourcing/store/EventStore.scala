@@ -1,6 +1,7 @@
 package event.sourcing.store
 
 import event.sourcing.EntityId
+import event.sourcing.aggregator.EventListenerLike
 import event.sourcing.domain.Event
 
 /**
@@ -8,8 +9,10 @@ import event.sourcing.domain.Event
   */
 trait EventStore {
 
+  def eventListener: EventListenerLike
+
   // Store an event
-  def save(entityId: EntityId, event: Event): List[Event]
+  def update(event: Event): List[Event]
 
   // Find an event
   def find(entityId: EntityId): List[Event]
