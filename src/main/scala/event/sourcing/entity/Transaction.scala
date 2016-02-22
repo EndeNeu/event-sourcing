@@ -3,13 +3,12 @@ package event.sourcing.entity
 import java.util.UUID
 
 import event.sourcing._
-import event.sourcing.domain.AccountEvents.{AccountCreditFromTransferEvent, AccountDebitFromTransferEvent}
 import event.sourcing.domain.TransactionCommands.{TransactionCompleteCommand, TransactionCreateCommand, TransactionExecuteCommand}
 import event.sourcing.domain.TransactionEvents._
 
 import scalaz.\/-
 
-class Transaction(val entityId: EntityId, val from: Account, val to: Account, val amount: Long, val state: TransactionState) extends EventHandlerLike[Transaction] {
+class Transaction private(val entityId: EntityId, val from: Account, val to: Account, val amount: Long, val state: TransactionState) extends EventHandlerLike[Transaction] {
 
   def this(entityId: EntityId) = this(entityId, null, null, null.asInstanceOf[Long], TransactionCreatedState)
 
