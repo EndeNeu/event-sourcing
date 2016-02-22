@@ -6,6 +6,7 @@ import event.sourcing.domain.AccountCommands.{AccountCreditCommand, AccountDebit
 import event.sourcing.domain.AccountEvents.{AccountDebitEvent, AccountCreditEvent, AccountOpenEvent}
 import event.sourcing.domain.TransactionEvents.{TransactionExecutedEvent, TransactionInProgressState, TransactionCreatedState, TransactionCreateEvent}
 import event.sourcing.entity.Account
+import event.sourcing.service.AccountService
 
 trait CommonSpec {
   trait TestContext {
@@ -13,9 +14,9 @@ trait CommonSpec {
     val eventId = UUID.randomUUID()
     val eventId2 = UUID.randomUUID()
     val eventId3 = UUID.randomUUID()
-    val a1 = new Account(UUID.randomUUID(), 10)
-    val a2 = new Account(UUID.randomUUID(), 20)
     val accountOpenCommand = AccountOpenCommand(UUID.randomUUID(), 100)
+    val a1 = AccountService.openAccount(AccountOpenCommand(UUID.randomUUID(), 10))
+    val a2 = AccountService.openAccount(AccountOpenCommand(UUID.randomUUID(), 20))
     val accountOpenCommandWithZero = AccountOpenCommand(UUID.randomUUID(), 0)
     val accountDebitCommand = AccountDebitCommand(UUID.randomUUID(), 50)
     val accountCreditCommand = AccountCreditCommand(UUID.randomUUID(), 150)

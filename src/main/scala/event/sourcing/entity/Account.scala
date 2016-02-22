@@ -9,7 +9,7 @@ import event.sourcing.{EntityId, HandleCommand, HandleEvent}
 
 import scalaz.{-\/, \/-}
 
-class Account(val entityId: EntityId, val balance: Long) extends EventHandlerLike[Account] {
+class Account private (val entityId: EntityId, val balance: Long) extends EventHandlerLike[Account] {
 
   def this(entityId: EntityId) = this(entityId, null.asInstanceOf[Long])
 

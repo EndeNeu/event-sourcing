@@ -13,8 +13,8 @@ class TransactionServiceSpec extends WordSpecLike with Matchers with CommonSpec 
 
   "TransactionService" should {
     "correctly open/restore a transaction" in new TestContext {
-      val from = new Account(UUID.randomUUID(), 0)
-      val to = new Account(UUID.randomUUID(), 0)
+      val from = AccountService.openAccount(AccountOpenCommand(UUID.randomUUID(), 0))
+      val to = AccountService.openAccount(AccountOpenCommand(UUID.randomUUID(), 0))
       val transaction = TransactionService.createTransaction(TransactionCreateCommand(UUID.randomUUID(), from, to, 100))
       transaction.state should be(TransactionCreatedState)
     }
@@ -24,8 +24,8 @@ class TransactionServiceSpec extends WordSpecLike with Matchers with CommonSpec 
         TransactionService.findTransaction(UUID.randomUUID())
       }
 
-      val from = new Account(UUID.randomUUID(), 0)
-      val to = new Account(UUID.randomUUID(), 0)
+      val from = AccountService.openAccount(AccountOpenCommand(UUID.randomUUID(), 0))
+      val to = AccountService.openAccount(AccountOpenCommand(UUID.randomUUID(), 0))
       val transaction = TransactionService.createTransaction(TransactionCreateCommand(UUID.randomUUID(), from, to, 0))
       // re-find tha previous account
       val replayedAccount = TransactionService.findTransaction(transaction.entityId)

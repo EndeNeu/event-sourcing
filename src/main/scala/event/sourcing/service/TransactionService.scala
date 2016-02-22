@@ -34,12 +34,7 @@ object TransactionService {
     */
   def executeTransaction(transactionId: EntityId, command: TransactionExecuteCommand): Transaction = {
     val transaction = findTransaction(transactionId)
-    transaction.handleCommand(command) match {
-      case \/-(events) =>
-        recreateTransaction(transactionId, Aggregator.update(events))
-      case -\/(failedEvent) =>
-        recreateTransaction(transactionId, Aggregator.update(failedEvent))
-    }
+    DisjunctionUtil.createEntityFromDisjunction(transaction.handleCommand(command), transaction.entityId)(recreateTransaction)
   }
 
   /**
