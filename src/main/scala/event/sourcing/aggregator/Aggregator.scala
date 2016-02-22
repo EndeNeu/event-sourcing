@@ -1,10 +1,11 @@
-package event.sourcing.store
+package event.sourcing.aggregator
 
 import java.util.UUID
 
 import event.sourcing.EntityId
 import event.sourcing.domain.Event
-import event.sourcing.handler.Account
+import event.sourcing.entity.Account
+import event.sourcing.store.{EventStore, InMemoryEventStore}
 
 /**
   * Aggregates event requests and interfaces with the event store.
@@ -23,8 +24,11 @@ object Aggregator {
   /**
     * Store the new event and return all the events.
     */
-  def update(entityId: EntityId, event: Event): List[Event] =
-    eventStore.save(entityId, event)
+  def update(event: Event): List[Event] =
+    eventStore.update(event)
+
+  def update(event: List[Event]): List[Event] =
+    event.flatMap(e => eventStore.update(e))
 
   /**
     * Helper method.

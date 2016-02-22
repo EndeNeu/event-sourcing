@@ -3,10 +3,13 @@ package event.sourcing.service
 import java.util.UUID
 
 import event.sourcing.EntityId
-import event.sourcing.domain.AccountEvents.{CreditAccount, DebitAccount, OpenAccountEvent}
-import event.sourcing.domain.Event
-import event.sourcing.handler.Account
-import event.sourcing.store.Aggregator
+import event.sourcing.aggregator.Aggregator
+import event.sourcing.domain.AccountCommands._
+import event.sourcing.domain.{ErrorEvent, Event}
+import event.sourcing.entity.Account
+import event.sourcing.util.DisjunctionUtil
+
+import scalaz.{-\/, \/, \/-}
 
 /**
   * Account manager.
@@ -16,10 +19,11 @@ object AccountService {
   /**
     * Create a new account with an initial balance.
     */
-  def openAccount(initialBalance: Long): Account = {
-    val accountId = UUID.randomUUID()
-    // add the opened event to this account
-    recreateAccount(accountId, Aggregator.update(accountId, OpenAccountEvent(UUID.randomUUID(), initialBalance)))
+  def openAccount(command: AccountOpenCommand): Account = {
+    val account = new Account(UUID.randomUUID())
+    val accountCreatedEvent = account.handleCommand(command)
+
+    DisjunctionUtil.createEntityFromDisjunction(account.handleCommand(command), account.entityId)(recreateAccount)
   }
 
   /**
@@ -31,21 +35,44 @@ object AccountService {
   /**
     * Decrease the balance of an account.
     */
-  @throws[IllegalArgumentException]("Cannot have a negative balance.")
-  def debitAccount(accountId: EntityId, debit: Long): Account = {
+  def debitAccount(accountId: EntityId, command: AccountDebitCommand): Account = {
     val account = recreateAccount(accountId, Aggregator.find(accountId))
+    DisjunctionUtil.createEntityFromDisjunction(account.handleCommand(command), account.entityId)(recreateAccount)
+  }
 
-    if (account.balance < debit) throw new IllegalArgumentException("Not enough money")
-    else recreateAccount(accountId, Aggregator.update(account.entityId, DebitAccount(UUID.randomUUID(), debit)))
+  def debitAccountFromTransfer(accountId: EntityId, command: AccountDebitFromTransactionCommand): \/[ErrorEvent, Account] = {
+    val account = recreateAccount(accountId, Aggregator.find(accountId))
+    println("acc")
+    println(account.balance)
+    account.handleCommand(command) match {
+      case \/-(successEvent) =>
+        \/-(recreateAccount(accountId, Aggregator.update(successEvent)))
+      case failure @ -\/(_) =>
+        failure
+    }
   }
 
   /**
     * Increase an account balance.
     */
-  def creditAccount(accountId: EntityId, credit: Long): Account =
-    recreateAccount(accountId, Aggregator.update(accountId, CreditAccount(UUID.randomUUID(), credit)))
+  def creditAccount(accountId: EntityId, command: AccountCreditCommand): Account = {
+    val account = recreateAccount(accountId, Aggregator.find(accountId))
+    DisjunctionUtil.createEntityFromDisjunction(account.handleCommand(command), account.entityId)(recreateAccount)
+  }
+
+  def creditAccountFromTransfer(accountId: EntityId, command: AccountCreditFromTransactionCommand): \/[ErrorEvent, Account] = {
+    val account = recreateAccount(accountId, Aggregator.find(accountId))
+    account.handleCommand(command) match {
+      case \/-(event) =>
+        \/-(recreateAccount(accountId, Aggregator.update(event)))
+      case failure @ -\/(_) =>
+        failure
+    }
+  }
+
 
   // Just a helper method
   private final def recreateAccount(accountId: EntityId, events: List[Event]): Account =
-    new Account(accountId, 0).replayEvents(events)
+    new Account(accountId).replayEvents(events)
+
 }

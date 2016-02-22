@@ -1,4 +1,4 @@
-package event.sourcing.handler
+package event.sourcing.entity
 
 import event.sourcing._
 import event.sourcing.domain.Event
@@ -11,7 +11,8 @@ trait EventHandlerLike[T <: EventHandlerLike[T]] {
   def entityId: EntityId
 
   // event handler
-  def handleEvent: HandleCommand[T]
+  def handleEvent: HandleEvent[T]
+  def handleCommand: HandleCommand
 
   /**
     * reconstruct a T from a list of events.
