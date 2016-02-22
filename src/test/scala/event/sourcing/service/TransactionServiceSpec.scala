@@ -4,12 +4,12 @@ import java.util.UUID
 
 import event.sourcing.CommonSpec
 import event.sourcing.domain.AccountCommands.AccountOpenCommand
-import event.sourcing.domain.TransactionCommands.{TransactionExecuteCommand, TransactionCreateCommand}
-import event.sourcing.domain.TransactionEvents.TransactionCreatedState
+import event.sourcing.domain.TransactionCommands.{TransactionCreateCommand, TransactionExecuteCommand}
+import event.sourcing.domain.TransactionEvents.{TransactionFailedState, TransactionCompletedState, TransactionCreatedState, TransactionInProgressState}
 import event.sourcing.entity.Account
 import org.scalatest.{Matchers, WordSpecLike}
 
-class TransactionServiceSpec  extends WordSpecLike with Matchers with CommonSpec {
+class TransactionServiceSpec extends WordSpecLike with Matchers with CommonSpec {
 
   "TransactionService" should {
     "correctly open/restore a transaction" in new TestContext {
@@ -34,27 +34,25 @@ class TransactionServiceSpec  extends WordSpecLike with Matchers with CommonSpec
       replayedAccount.from should be(from)
       replayedAccount.to should be(to)
       replayedAccount.amount should be(0)
-
     }
 
-    "correctly execute a transaction" in new TestContext {
+    "correctly mark a transaction as failed" in new TestContext {
       val from = AccountService.openAccount(AccountOpenCommand(UUID.randomUUID(), 0))
       val to = AccountService.openAccount(AccountOpenCommand(UUID.randomUUID(), 0))
       val transaction = TransactionService.createTransaction(TransactionCreateCommand(UUID.randomUUID(), from, to, 100))
-      println(TransactionService.executeTransaction(transaction.entityId, TransactionExecuteCommand(UUID.randomUUID())).state)
+      TransactionService.executeTransaction(transaction.entityId, TransactionExecuteCommand(UUID.randomUUID())).state should be(TransactionInProgressState)
+      TransactionService.findTransaction(transaction.entityId).state should be(TransactionFailedState)
 
-
-      println("----------------")
-
+    }
+    "correctly mark a transaction as completed" in new TestContext {
       val from2 = AccountService.openAccount(AccountOpenCommand(UUID.randomUUID(), 150))
-      println(from2.balance)
       val to2 = AccountService.openAccount(AccountOpenCommand(UUID.randomUUID(), 0))
-      println(to2.balance)
       val transaction2 = TransactionService.createTransaction(TransactionCreateCommand(UUID.randomUUID(), from2, to2, 100))
-      println("id " + transaction2.entityId)
-      println(TransactionService.executeTransaction(transaction2.entityId, TransactionExecuteCommand(UUID.randomUUID())).state)
-      println(TransactionService.findTransaction(transaction2.entityId).state)
+      TransactionService.executeTransaction(transaction2.entityId, TransactionExecuteCommand(UUID.randomUUID())).state should be(TransactionInProgressState)
+      TransactionService.findTransaction(transaction2.entityId).state should be(TransactionCompletedState)
 
+      AccountService.findAccount(from2.entityId).balance should be(50)
+      AccountService.findAccount(to2.entityId).balance should be(100)
     }
   }
 }

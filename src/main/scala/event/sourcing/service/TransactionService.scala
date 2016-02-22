@@ -4,7 +4,7 @@ import java.util.UUID
 
 import event.sourcing.EntityId
 import event.sourcing.aggregator.Aggregator
-import event.sourcing.domain.Event
+import event.sourcing.domain.EventLike
 import event.sourcing.domain.TransactionCommands.{TransactionCompleteCommand, TransactionCreateCommand, TransactionExecuteCommand}
 import event.sourcing.entity.Transaction
 import event.sourcing.util.DisjunctionUtil
@@ -13,14 +13,25 @@ import scalaz.{-\/, \/-}
 
 object TransactionService {
 
+  /**
+    * Create a new transaction.
+    */
   def createTransaction(command: TransactionCreateCommand): Transaction = {
     val transaction = new Transaction(UUID.randomUUID())
     DisjunctionUtil.createEntityFromDisjunction(transaction.handleCommand(command), transaction.entityId)(recreateTransaction)
   }
 
+  /**
+    * Find a transaction finding all the events and replaying
+    */
   def findTransaction(transactionId: EntityId): Transaction =
     recreateTransaction(transactionId, Aggregator.find(transactionId))
 
+  /**
+    * Store an event to mark a transaction in progress, the even listener will catch this event and
+    * fire the appropriate event to decrease and increase the amount from the accounts.
+    * A transaction in progress is returned.
+    */
   def executeTransaction(transactionId: EntityId, command: TransactionExecuteCommand): Transaction = {
     val transaction = findTransaction(transactionId)
     transaction.handleCommand(command) match {
@@ -31,23 +42,19 @@ object TransactionService {
     }
   }
 
+  /**
+    * Mark a transaction as completed with an event,
+    * called from the event listener after the transaction is successful.
+    */
   def completeTransaction(transactionId: EntityId, command: TransactionCompleteCommand): Transaction = {
-    val trans = findTransaction(transactionId)
-    trans.handleCommand(command) match {
-      case \/-(events) =>
-        // not used because contains events also for the account and we want to retrieve only the transaction.
-        Aggregator.update(events)
-        recreateTransaction(transactionId, Aggregator.find(transactionId))
-      case -\/(failedEvent) =>
-        recreateTransaction(transactionId, Aggregator.update(failedEvent))
-    }
+    val transaction = findTransaction(transactionId)
+    DisjunctionUtil.createEntityFromDisjunction(transaction.handleCommand(command), transaction.entityId)(recreateTransaction)
   }
 
   /**
-    * Nones are used as placeholders but we assume that at least the CreateTransactionEvent
-    * exists (that should be the only way to create a transaction) which will set all the right parameters.
+    * Helper method that creates an empty account and replays the events on it.
     */
-  private def recreateTransaction(id: EntityId, events: List[Event]) =
+  private def recreateTransaction(id: EntityId, events: List[EventLike]) =
     new Transaction(id).replayEvents(events)
 
 }

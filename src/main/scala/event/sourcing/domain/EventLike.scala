@@ -3,9 +3,9 @@ package event.sourcing.domain
 import event.sourcing.{EntityId, EventId}
 
 /**
-  * Events superclass.
+  * Interface for events.
   */
-trait Event {
+trait EventLike {
   def id: EventId
   def entityId: EntityId
   def ts: Long

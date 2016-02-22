@@ -2,6 +2,9 @@ package event.sourcing.domain
 
 import event.sourcing._
 
-trait Command {
+/**
+  * Interface for commands.
+  */
+trait CommandLike {
   def id: CommandId
 }
