@@ -46,7 +46,7 @@ object AccountService {
     val account = recreateAccount(accountId, Aggregator.find(accountId))
     account.handleCommand(command) match {
       case \/-(successEvent) =>
-        \/-(recreateAccount(accountId, Aggregator.update(successEvent)))
+        \/-(recreateAccount(accountId, Aggregator.updateOrInsert(successEvent)))
       case failure @ -\/(_) =>
         failure
     }
@@ -67,7 +67,7 @@ object AccountService {
     val account = recreateAccount(accountId, Aggregator.find(accountId))
     account.handleCommand(command) match {
       case \/-(event) =>
-        \/-(recreateAccount(accountId, Aggregator.update(event)))
+        \/-(recreateAccount(accountId, Aggregator.updateOrInsert(event)))
       case failure @ -\/(_) =>
         failure
     }

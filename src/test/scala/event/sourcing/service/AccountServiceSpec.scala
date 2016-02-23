@@ -9,12 +9,12 @@ import org.scalatest.{Matchers, WordSpecLike}
 class AccountServiceSpec extends WordSpecLike with Matchers with CommonSpec {
 
   "AccountService" should {
-    "correctly open/restore an account" in new TestContext {
+    "correctly open an account" in new TestContext {
       val account = AccountService.openAccount(accountOpenCommand)
       account.balance should be(100)
     }
 
-    "correctly find an account" in new TestContext {
+    "correctly restore an account" in new TestContext {
       intercept[IllegalArgumentException] {
         AccountService.findAccount(UUID.randomUUID())
       }
@@ -28,6 +28,9 @@ class AccountServiceSpec extends WordSpecLike with Matchers with CommonSpec {
     "correctly debit an account" in new TestContext {
       val account = AccountService.openAccount(AccountOpenCommand(100))
       AccountService.debitAccount(account.entityId, AccountDebitCommand(50)).balance should be(50)
+
+      val account2 = AccountService.openAccount(AccountOpenCommand(100))
+      AccountService.debitAccount(account2.entityId, AccountDebitCommand(200)).balance should be(100)
     }
 
     "correctly credit an account" in new TestContext {

@@ -16,6 +16,7 @@ object TransactionEvents {
   case object TransactionCompletedState extends TransactionState
 
   trait TransactionEventLike extends EventLike
+
   case class TransactionCreateEvent(entityId: EntityId, from: Account, to: Account, amount: Long, state: TransactionState) extends TransactionEventLike
   // this one needs from and to to allow the event listener to respond to a transaction in progress.
   case class TransactionInProgressEvent(entityId: EntityId, from: Account, to: Account, amount: Long, state: TransactionState) extends TransactionEventLike

@@ -11,12 +11,18 @@ import scalaz.{-\/, \/, \/-}
 
 object DisjunctionUtil {
 
-  def createEntityFromDisjunction[T](disj: \/[ErrorEventLike, List[EventLike]], entityId: EntityId)(builder: (UUID, List[EventLike]) => T): T =
+  /**
+    * Utility method to create an event from a disjunction
+    *
+    * @param builder: a function that takes a entity id and a list of events and replays those events
+    *               creating an entity
+    */
+  def createEntityFromDisjunction[T](disj: \/[ErrorEventLike, List[EventLike]], entityId: EntityId)(builder: (EntityId, List[EventLike]) => T): T =
     disj match {
       case \/-(event) =>
-        builder(entityId, Aggregator.update(event))
+        builder(entityId, Aggregator.updateOrInsert(event))
       case -\/(failureEvent) =>
-        builder(entityId, Aggregator.update(failureEvent))
+        builder(entityId, Aggregator.updateOrInsert(failureEvent))
     }
 
 }

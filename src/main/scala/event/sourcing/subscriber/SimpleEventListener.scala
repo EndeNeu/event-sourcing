@@ -25,11 +25,9 @@ class SimpleEventListener extends EventListenerLike {
       } yield transactionCompleted
 
       // in case an error occurred update the account and the transaction with the failure
-      result.leftMap(errorEvent =>
-        Aggregator.update(List(errorEvent, TransactionFailedEvent(entityId, TransactionFailedState)))
-      )
+      result.leftMap(errorEvent => Aggregator.updateOrInsert(List(errorEvent, TransactionFailedEvent(entityId, TransactionFailedState))))
 
-    // ignore other events
+    // don't react to other events
     case _ =>
 
   }

@@ -26,11 +26,11 @@ class Account private(val entityId: EntityId, val balance: Long) extends EventHa
       \/-(List(AccountCreditEvent(entityId, credit)))
 
     case AccountDebitFromTransactionCommand(transactionId, debit) =>
-      if (balance > debit) \/-(List(AccountDebitFromTransferEvent(entityId, transactionId, debit)))
+      if (balance > debit) \/-(List(AccountDebitFromTransactionEvent(entityId, transactionId, debit)))
       else -\/(AccountInsufficientFoundFromTransactionEvent(entityId, transactionId))
 
     case AccountCreditFromTransactionCommand(transactionId, credit) =>
-      \/-(List(AccountCreditFromTransferEvent(entityId, transactionId, credit)))
+      \/-(List(AccountCreditFromTransactionEvent(entityId, transactionId, credit)))
 
     case AccountSnapshotCommand(_) =>
       \/-(List(AccountSnapshotEvent(entityId, balance)))
@@ -52,10 +52,10 @@ class Account private(val entityId: EntityId, val balance: Long) extends EventHa
     case AccountDebitEvent(_, debit) =>
       new Account(entityId, balance - debit)
 
-    case AccountCreditFromTransferEvent(_, _, credit) =>
+    case AccountCreditFromTransactionEvent(_, _, credit) =>
       new Account(entityId, balance + credit)
 
-    case AccountDebitFromTransferEvent(_, _, debit) =>
+    case AccountDebitFromTransactionEvent(_, _, debit) =>
       new Account(entityId, balance - debit)
 
     case msg: AccountInsufficientFoundEvent =>

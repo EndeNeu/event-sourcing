@@ -10,17 +10,18 @@ import event.sourcing.entity.{Account, Transaction}
 import event.sourcing.subscriber.{EventListenerLike, SimpleEventListener}
 
 import scala.collection.mutable
+import scala.concurrent.{ExecutionContext, Future}
 
 /**
   * Store implementation using in memory storage with an HashMap
   */
-class InMemoryEventStore extends EventStoreLike {
+class InMemoryEventStore(implicit val executionContext: ExecutionContext) extends EventStoreLike with EventStoreJournaledLike {
 
   case class EventsWithVersion(version: Int, events: List[EventLike]) {
     def this(version: Int, event: EventLike) = this(version, List(event))
   }
 
-  // map a entity id to a list of events. TODO use TreeSet for sorted events
+  // map a entity id to a list of events.
   private lazy val events = mutable.HashMap.empty[EntityId, EventsWithVersion]
   // store all the older events for future search.
   private lazy val eventDump = mutable.HashMap.empty[EntityId, EventsWithVersion]
@@ -83,13 +84,13 @@ class InMemoryEventStore extends EventStoreLike {
     eventDump.get(entityId).map(_.events).getOrElse(List()) ++ find(entityId)
 
   override def notifyListeners(e: EventLike): Unit =
-    eventListeners.foreach(_.notifyEvent(e))
+    eventListeners.foreach(listener => Future(listener.notifyEvent(e)))
 
   /**
     * Create a snapshot of an entity, the last event is brought along to match on the type of snapshot we need to take,
     * entities are recreated from events and a snapshot is created and stored overwriting the list of events we had.
     */
-  def snapshot(entityId: EntityId, e: EventLike, newEvents: List[EventLike]): List[EventLike] = {
+  override def snapshot(entityId: EntityId, e: EventLike, newEvents: List[EventLike]): List[EventLike] = {
     dumpEvents(entityId, newEvents)
     e match {
       case a: AccountEventLike =>
@@ -104,7 +105,7 @@ class InMemoryEventStore extends EventStoreLike {
   /**
     * Dump the events to a secondary collection to avoid loosing track of an account movements.
     */
-  def dumpEvents(entityId: EntityId, newEvents: List[EventLike]): Unit = {
+  override def dumpEvents(entityId: EntityId, newEvents: List[EventLike]): Unit = {
     // if there are already some events, chain them to this batch.
     val toDumpEvents = eventDump.get(entityId)
       .map(olderEvents => EventsWithVersion(olderEvents.version + newEvents.length, olderEvents.events ++ newEvents))

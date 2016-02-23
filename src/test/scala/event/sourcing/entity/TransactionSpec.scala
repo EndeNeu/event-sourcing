@@ -3,12 +3,20 @@ package event.sourcing.entity
 import java.util.UUID
 
 import event.sourcing.CommonSpec
+import event.sourcing.domain.TransactionCommands.{TransactionCompleteCommand, TransactionExecuteCommand, TransactionCreateCommand}
 import event.sourcing.domain.TransactionEvents._
 import org.scalatest.{Matchers, WordSpecLike}
 
 class TransactionSpec extends WordSpecLike with Matchers with CommonSpec {
 
   "A transaction" should {
+    "correctly parse commands" in new TestContext {
+      val transaction = new Transaction(entityId)
+      transaction.handleCommand(TransactionCreateCommand(a1, a2, 100)).toOption.get.head shouldBe a[TransactionCreateEvent]
+      transaction.handleCommand(TransactionExecuteCommand()).toOption.get.head shouldBe a[TransactionInProgressEvent]
+      transaction.handleCommand(TransactionCompleteCommand()).toOption.get.head shouldBe a[TransactionExecutedEvent]
+    }
+
     "correctly parse events" in new TestContext {
       val transaction = new Transaction(entityId)
       val newTransaction = transaction.handleEvent(createTransactionEvent)

@@ -2,8 +2,8 @@ package event.sourcing
 
 import java.util.UUID
 
-import event.sourcing.domain.AccountCommands.{AccountCreditCommand, AccountDebitCommand, AccountOpenCommand}
-import event.sourcing.domain.AccountEvents.{AccountSnapshotEvent, AccountDebitEvent, AccountCreditEvent, AccountOpenEvent}
+import event.sourcing.domain.AccountCommands._
+import event.sourcing.domain.AccountEvents._
 import event.sourcing.domain.TransactionEvents.{TransactionExecutedEvent, TransactionInProgressState, TransactionCreatedState, TransactionCreateEvent}
 import event.sourcing.entity.Account
 import event.sourcing.service.AccountService
@@ -20,6 +20,10 @@ trait CommonSpec {
     val a2 = AccountService.openAccount(AccountOpenCommand(20))
     val accountOpenCommandWithZero = AccountOpenCommand(0)
     val accountDebitCommand = AccountDebitCommand(50)
+    val accountDebitFromTransactionCommand = AccountDebitFromTransactionCommand(entityId, 50)
+    val accountCreditFromTransactionCommand = AccountCreditFromTransactionCommand(entityId, 50)
+    val accountDebitFromTransactionEvent = AccountDebitFromTransactionEvent(UUID.randomUUID(), entityId, 50)
+    val accountCreditFromTransactionEvent = AccountCreditFromTransactionEvent(UUID.randomUUID(), entityId, 50)
     val accountCreditCommand = AccountCreditCommand(150)
     val openAccountEvent = AccountOpenEvent(entityId, 100)
     val creditAccountEvent = AccountCreditEvent(entityId, 150)

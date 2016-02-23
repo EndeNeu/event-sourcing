@@ -4,9 +4,11 @@ import event.sourcing.CommonSpec
 import event.sourcing.domain.AccountEvents.AccountSnapshotEvent
 import org.scalatest.{Matchers, WordSpecLike}
 
+import scala.concurrent.ExecutionContext
+
 class InMemoryEventStoreSpec extends WordSpecLike with Matchers with CommonSpec {
 
-  val store = new InMemoryEventStore()
+  val store = new InMemoryEventStore()(ExecutionContext.global)
 
   "InMemoryEventStore" should {
     "correctly store and find an event" in new TestContext {
