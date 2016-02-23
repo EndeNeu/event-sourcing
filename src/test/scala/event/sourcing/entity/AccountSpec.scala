@@ -27,6 +27,7 @@ class AccountSpec extends WordSpecLike with Matchers with CommonSpec {
       account.handleEvent(openAccountEvent).balance should be(100)
       account.handleEvent(creditAccountEvent).balance should be(150)
       account.handleEvent(creditAccountEvent).handleEvent(debitAccountEvent).balance should be(50)
+      account.handleEvent(accountSnapshotEvent).balance should be(150)
     }
 
     "correctly be replayed" in new TestContext {

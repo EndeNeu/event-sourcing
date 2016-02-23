@@ -43,6 +43,9 @@ class Transaction private(val entityId: EntityId, val from: Account, val to: Acc
     case TransactionExecutedEvent(_, _state) =>
       new Transaction(entityId, from, to, amount, _state)
 
+    case TransactionSnapshotEvent(_, _from, _to, _amount, _state) =>
+      new Transaction(entityId, _from, _to, _amount, _state)
+
     case _ =>
       throw new IllegalArgumentException("Unknown event in transaction.")
   }

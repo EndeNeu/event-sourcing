@@ -21,4 +21,6 @@ trait EventStoreLike {
 
   def notifyListeners(e: EventLike): Unit
 
+  def snapshot(entityId: EntityId, e: EventLike, newEvents: List[EventLike]): EventLike
+
 }

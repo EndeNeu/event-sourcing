@@ -13,7 +13,7 @@ import event.sourcing.service.{AccountService, TransactionService}
 import scalaz.{\/, \/-}
 
 /**
-  * A simple event listener, only acts on transaction execution.
+  * A simple event listener for response to .
   */
 class SimpleEventListener extends EventListenerLike {
 

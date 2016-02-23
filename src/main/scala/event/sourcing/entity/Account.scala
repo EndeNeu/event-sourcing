@@ -61,6 +61,9 @@ class Account private(val entityId: EntityId, val balance: Long) extends EventHa
     case msg: AccountInsufficientFoundFromTransactionEvent =>
       this
 
+    case AccountSnapshotEvent(_, _balance) =>
+      new Account(entityId, _balance)
+
     case _ =>
       throw new IllegalArgumentException("Unknown event in transaction.")
   }

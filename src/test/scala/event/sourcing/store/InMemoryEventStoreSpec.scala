@@ -1,7 +1,7 @@
 package event.sourcing.store
 
 import event.sourcing.CommonSpec
-import event.sourcing.domain.AccountEvents.AccountCreditEvent
+import event.sourcing.domain.AccountEvents.AccountSnapshotEvent
 import org.scalatest.{Matchers, WordSpecLike}
 
 class InMemoryEventStoreSpec extends WordSpecLike with Matchers with CommonSpec {
@@ -24,6 +24,22 @@ class InMemoryEventStoreSpec extends WordSpecLike with Matchers with CommonSpec 
       store.find(entityId, 1, 100) should be(List(creditAccountEvent, debitAccountEvent))
       store.find(entityId, 2, 100) should be(List(debitAccountEvent))
       store.find(entityId, 1, 1) should be(List(creditAccountEvent))
+    }
+
+    "correctly snapshot" in new TestContext {
+      store.update(creditAccountEvent)
+      store.update(creditAccountEvent)
+      store.update(creditAccountEvent)
+      store.update(creditAccountEvent)
+      store.update(creditAccountEvent)
+      store.update(creditAccountEvent)
+      store.update(creditAccountEvent)
+      store.update(creditAccountEvent)
+      store.update(creditAccountEvent)
+      store.update(creditAccountEvent)
+      store.update(creditAccountEvent)
+
+      store.find(entityId, 11, 1).head shouldBe a[AccountSnapshotEvent]
     }
   }
 }
