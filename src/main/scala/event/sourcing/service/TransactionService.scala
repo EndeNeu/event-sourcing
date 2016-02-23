@@ -9,8 +9,6 @@ import event.sourcing.domain.TransactionCommands.{TransactionCompleteCommand, Tr
 import event.sourcing.entity.Transaction
 import event.sourcing.util.DisjunctionUtil
 
-import scalaz.{-\/, \/-}
-
 object TransactionService {
 
   /**

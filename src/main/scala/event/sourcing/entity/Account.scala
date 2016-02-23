@@ -2,7 +2,7 @@ package event.sourcing.entity
 
 import event.sourcing.domain.AccountCommands._
 import event.sourcing.domain.AccountEvents._
-import event.sourcing.domain.{AccountInsufficientFoundEvent, AccountInsufficientFoundFromTransactionEvent}
+import event.sourcing.domain.ErrorEvents.{AccountInsufficientFoundEvent, AccountInsufficientFoundFromTransactionEvent}
 import event.sourcing.{EntityId, HandleCommand, HandleEvent}
 
 import scalaz.{-\/, \/-}

@@ -1,12 +1,11 @@
 package event.sourcing.subscriber
 
-import java.util.UUID
-
 import event.sourcing.aggregator.Aggregator
 import event.sourcing.domain.AccountCommands.{AccountCreditFromTransactionCommand, AccountDebitFromTransactionCommand}
+import event.sourcing.domain.ErrorEvents.ErrorEventLike
+import event.sourcing.domain.EventLike
 import event.sourcing.domain.TransactionCommands.TransactionCompleteCommand
 import event.sourcing.domain.TransactionEvents.{TransactionFailedEvent, TransactionFailedState, TransactionInProgressEvent}
-import event.sourcing.domain.{ErrorEventLike, EventLike}
 import event.sourcing.entity.Transaction
 import event.sourcing.service.{AccountService, TransactionService}
 

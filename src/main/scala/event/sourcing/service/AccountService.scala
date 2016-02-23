@@ -5,7 +5,8 @@ import java.util.UUID
 import event.sourcing.EntityId
 import event.sourcing.aggregator.Aggregator
 import event.sourcing.domain.AccountCommands._
-import event.sourcing.domain.{ErrorEventLike, EventLike}
+import event.sourcing.domain.ErrorEvents.ErrorEventLike
+import event.sourcing.domain.EventLike
 import event.sourcing.entity.Account
 import event.sourcing.util.DisjunctionUtil
 

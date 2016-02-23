@@ -4,7 +4,8 @@ import java.util.UUID
 
 import event.sourcing.EntityId
 import event.sourcing.aggregator.Aggregator
-import event.sourcing.domain.{ErrorEventLike, EventLike}
+import event.sourcing.domain.ErrorEvents.ErrorEventLike
+import event.sourcing.domain.EventLike
 
 import scalaz.{-\/, \/, \/-}
 

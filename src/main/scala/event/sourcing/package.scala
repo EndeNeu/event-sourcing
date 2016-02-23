@@ -2,10 +2,10 @@ package event
 
 import java.util.UUID
 
-import event.sourcing.aggregator.Aggregator
-import event.sourcing.domain.{CommandLike, ErrorEventLike, EventLike}
+import event.sourcing.domain.ErrorEvents.ErrorEventLike
+import event.sourcing.domain.{CommandLike, EventLike}
 
-import scalaz.{-\/, \/, \/-}
+import scalaz.\/
 
 package object sourcing {
   type HandleEvent[T] = PartialFunction[EventLike, T]
