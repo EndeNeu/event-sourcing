@@ -3,7 +3,12 @@ package event.sourcing.domain
 import event.sourcing._
 import event.sourcing.entity.Account
 
+/**
+  * All transaction events
+  */
 object TransactionEvents {
+
+  // mark the state of a transaction.
   trait TransactionState
   case object TransactionCreatedState extends TransactionState
   case object TransactionInProgressState extends TransactionState

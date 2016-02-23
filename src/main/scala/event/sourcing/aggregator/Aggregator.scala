@@ -25,12 +25,12 @@ object Aggregator {
     * Store the new event and return all the events.
     */
   def update(event: EventLike): List[EventLike] =
-    eventStore.update(event)
+    eventStore.updateOrInsert(event)
 
   /**
     * Store a list of events and return all the events.
     */
   def update(events: List[EventLike]): List[EventLike] =
-    events.flatMap(e => eventStore.update(e))
+    events.flatMap(e => eventStore.updateOrInsert(e))
 
 }

@@ -1,10 +1,12 @@
 package event.sourcing.store
 
 import event.sourcing.EntityId
-import event.sourcing.domain.AccountEvents.{AccountSnapshotEvent, AccountEventLike}
-import event.sourcing.domain.TransactionEvents.{TransactionSnapshotEvent, TransactionEventLike}
-import event.sourcing.domain.{OptimisticLockException, EventLike}
-import event.sourcing.entity.{Transaction, Account}
+import event.sourcing.domain.AccountCommands.AccountSnapshotCommand
+import event.sourcing.domain.AccountEvents.AccountEventLike
+import event.sourcing.domain.TransactionCommands.TransactionSnapshotCommand
+import event.sourcing.domain.TransactionEvents.TransactionEventLike
+import event.sourcing.domain.{EventLike, OptimisticLockException}
+import event.sourcing.entity.{Account, Transaction}
 import event.sourcing.subscriber.{EventListenerLike, SimpleEventListener}
 
 import scala.collection.mutable
@@ -20,20 +22,23 @@ class InMemoryEventStore extends EventStoreLike {
 
   // map a entity id to a list of events. TODO use TreeSet for sorted events
   private lazy val events = mutable.HashMap.empty[EntityId, EventsWithVersion]
+  // store all the older events for future search.
   private lazy val eventDump = mutable.HashMap.empty[EntityId, EventsWithVersion]
+  // after how many events we need to snapshot.
   private lazy val snapshotThreshold = 10
 
   // subscriber to events being stored.
-  override def eventListeners: List[EventListenerLike] = List(new SimpleEventListener)
+  override def eventListeners: List[EventListenerLike] =
+    List(new SimpleEventListener)
 
   /**
     * if the entity is in the map, append the event to the events else create a new entity.
     * For each event notify the listeners
     */
-  override def update(event: EventLike): List[EventLike] =
+  override def updateOrInsert(event: EventLike): List[EventLike] =
     events.get(event.entityId) match {
-      case Some(evs) =>
-        val newEvents = evs.events :+ event
+      case Some(evs) => // if there are already some events for this entity
+        val newEvents = evs.events :+ event // append the new event
         val version = evs.version
         if (version == evs.events.length) {
           // if we are over the threshold, create a snapshot and dump the older events to another collection.
@@ -42,6 +47,7 @@ class InMemoryEventStore extends EventStoreLike {
           else
             events.put(event.entityId, EventsWithVersion(newEvents.length, newEvents))
 
+          // notify the listeners that a new event has happened
           notifyListeners(event)
           newEvents
         }
@@ -54,38 +60,52 @@ class InMemoryEventStore extends EventStoreLike {
     }
 
   /**
-    * Find all the events for a entity, if the entity is not in the map
+    * Find all the latest events for a entity, if the entity is not in the map
     * an exception is thrown.
     */
   override def find(entityId: EntityId): List[EventLike] = {
     events.get(entityId) match {
-      case Some(evs) => eventDump.get(entityId).map(_.events).getOrElse(List()) ++ evs.events
+      case Some(evs) => evs.events
       case None => throw new IllegalArgumentException("Entity doesn't exists.")
     }
   }
 
+  /**
+    * Finds all the events for an entity with an offset and a limit
+    */
   override def find(entityId: EntityId, offset: Int, limit: Int): List[EventLike] =
     find(entityId).slice(offset, offset + limit)
+
+  /**
+    * Find all the events for an entity, included dumped ones.
+    */
+  override def findAllEvents(entityId: EntityId): List[EventLike] =
+    eventDump.get(entityId).map(_.events).getOrElse(List()) ++ find(entityId)
 
   override def notifyListeners(e: EventLike): Unit =
     eventListeners.foreach(_.notifyEvent(e))
 
   /**
     * Create a snapshot of an entity, the last event is brought along to match on the type of snapshot we need to take,
-    * entities are recreated from events and a snapshot is created.
+    * entities are recreated from events and a snapshot is created and stored overwriting the list of events we had.
     */
-  def snapshot(entityId: EntityId, e: EventLike, newEvents: List[EventLike]): EventLike = {
+  def snapshot(entityId: EntityId, e: EventLike, newEvents: List[EventLike]): List[EventLike] = {
     dumpEvents(entityId, newEvents)
     e match {
       case a: AccountEventLike =>
-        AccountSnapshotEvent(entityId, new Account(entityId).replayEvents(newEvents).balance)
+        // fail fast in case snapshotting doesn't work
+        new Account(entityId).replayEvents(newEvents).handleCommand(AccountSnapshotCommand(entityId)).toOption.get
       case t: TransactionEventLike =>
-        val transaction = new Transaction(entityId).replayEvents(newEvents)
-        TransactionSnapshotEvent(entityId, transaction.from, transaction.to, transaction.amount, transaction.state)
+        // fail fast in case snapshotting doesn't work
+        new Transaction(entityId).replayEvents(newEvents).handleCommand(TransactionSnapshotCommand(entityId)).toOption.get
     }
   }
 
+  /**
+    * Dump the events to a secondary collection to avoid loosing track of an account movements.
+    */
   def dumpEvents(entityId: EntityId, newEvents: List[EventLike]): Unit = {
+    // if there are already some events, chain them to this batch.
     val toDumpEvents = eventDump.get(entityId)
       .map(olderEvents => EventsWithVersion(olderEvents.version + newEvents.length, olderEvents.events ++ newEvents))
       .getOrElse(EventsWithVersion(newEvents.length, newEvents))

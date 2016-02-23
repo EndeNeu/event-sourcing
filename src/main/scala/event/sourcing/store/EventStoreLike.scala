@@ -12,15 +12,18 @@ trait EventStoreLike {
   def eventListeners: List[EventListenerLike]
 
   // Store an event
-  def update(event: EventLike): List[EventLike]
+  def updateOrInsert(event: EventLike): List[EventLike]
 
   // Find an event
   def find(entityId: EntityId): List[EventLike]
 
   def find(entityId: EntityId, offset: Int, limit: Int): List[EventLike]
 
+  // find all the events, including the dumped ones.
+  def findAllEvents(entityId: EntityId): List[EventLike]
+
   def notifyListeners(e: EventLike): Unit
 
-  def snapshot(entityId: EntityId, e: EventLike, newEvents: List[EventLike]): EventLike
+  def snapshot(entityId: EntityId, e: EventLike, newEvents: List[EventLike]): List[EventLike]
 
 }

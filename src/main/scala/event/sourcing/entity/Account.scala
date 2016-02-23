@@ -32,6 +32,9 @@ class Account private(val entityId: EntityId, val balance: Long) extends EventHa
     case AccountCreditFromTransactionCommand(transactionId, credit) =>
       \/-(List(AccountCreditFromTransferEvent(entityId, transactionId, credit)))
 
+    case AccountSnapshotCommand(_) =>
+      \/-(List(AccountSnapshotEvent(entityId, balance)))
+
     case _ =>
       throw new IllegalArgumentException("Unknown command in account.")
   }

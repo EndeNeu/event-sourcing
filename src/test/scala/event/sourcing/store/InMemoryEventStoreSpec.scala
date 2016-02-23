@@ -10,16 +10,16 @@ class InMemoryEventStoreSpec extends WordSpecLike with Matchers with CommonSpec 
 
   "InMemoryEventStore" should {
     "correctly store and find an event" in new TestContext {
-      store.update(openAccountEvent)
+      store.updateOrInsert(openAccountEvent)
       store.find(entityId).head should be(openAccountEvent)
-      store.update(creditAccountEvent)
-      store.update(debitAccountEvent)
+      store.updateOrInsert(creditAccountEvent)
+      store.updateOrInsert(debitAccountEvent)
       store.find(entityId) should be(List(openAccountEvent, creditAccountEvent, debitAccountEvent))
     }
     "correctly find with offset and limit" in new TestContext {
-      store.update(openAccountEvent)
-      store.update(creditAccountEvent)
-      store.update(debitAccountEvent)
+      store.updateOrInsert(openAccountEvent)
+      store.updateOrInsert(creditAccountEvent)
+      store.updateOrInsert(debitAccountEvent)
       store.find(entityId, 0, 100) should be(List(openAccountEvent, creditAccountEvent, debitAccountEvent))
       store.find(entityId, 1, 100) should be(List(creditAccountEvent, debitAccountEvent))
       store.find(entityId, 2, 100) should be(List(debitAccountEvent))
@@ -27,19 +27,23 @@ class InMemoryEventStoreSpec extends WordSpecLike with Matchers with CommonSpec 
     }
 
     "correctly snapshot" in new TestContext {
-      store.update(creditAccountEvent)
-      store.update(creditAccountEvent)
-      store.update(creditAccountEvent)
-      store.update(creditAccountEvent)
-      store.update(creditAccountEvent)
-      store.update(creditAccountEvent)
-      store.update(creditAccountEvent)
-      store.update(creditAccountEvent)
-      store.update(creditAccountEvent)
-      store.update(creditAccountEvent)
-      store.update(creditAccountEvent)
+      store.updateOrInsert(creditAccountEvent)
+      store.updateOrInsert(creditAccountEvent)
+      store.updateOrInsert(creditAccountEvent)
+      store.updateOrInsert(creditAccountEvent)
+      store.updateOrInsert(creditAccountEvent)
+      store.updateOrInsert(creditAccountEvent)
+      store.updateOrInsert(creditAccountEvent)
+      store.updateOrInsert(creditAccountEvent)
+      store.updateOrInsert(creditAccountEvent)
+      store.updateOrInsert(creditAccountEvent)
+      store.updateOrInsert(creditAccountEvent)
 
-      store.find(entityId, 11, 1).head shouldBe a[AccountSnapshotEvent]
+      store.find(entityId, 0, 1).head shouldBe a[AccountSnapshotEvent]
+      store.findAllEvents(entityId) should be(List(
+        creditAccountEvent, creditAccountEvent, creditAccountEvent, creditAccountEvent,
+        creditAccountEvent, creditAccountEvent, creditAccountEvent, creditAccountEvent, creditAccountEvent,
+        creditAccountEvent, creditAccountEvent, AccountSnapshotEvent(entityId, creditAccountEvent.credit * 11)))
     }
   }
 }
