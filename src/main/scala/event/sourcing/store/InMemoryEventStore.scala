@@ -40,25 +40,29 @@ class InMemoryEventStore(implicit val executionContext: ExecutionContext) extend
     events.get(event.entityId) match {
       case Some(evs) => // if there are already some events for this entity
         val newEvents = evs.events :+ event // append the new event
-        val version = evs.version
-        if (version == evs.events.length) {
-          // if we are over the threshold, create a snapshot and dump the older events to another collection.
-          if (newEvents.length > snapshotThreshold)
-            events.put(event.entityId, new EventsWithVersion(1, snapshot(event.entityId, event, newEvents)))
-          else
-            events.put(event.entityId, EventsWithVersion(newEvents.length, newEvents))
+        if (newEvents.length > snapshotThreshold)
+          putWitOptimisticLock(event.entityId, new EventsWithVersion(1, snapshot(event.entityId, event, newEvents)), evs.events)
+        else
+          putWitOptimisticLock(event.entityId, EventsWithVersion(newEvents.length, newEvents), evs.events)
 
-          // notify the listeners that a new event has happened
-          notifyListeners(event)
-          newEvents
-        }
-        else throw new OptimisticLockException
-      case None => // this is basically a save.
+        // notify the listeners that a new event has happened
+        notifyListeners(event)
+        newEvents
+      case None =>
+        // this is basically a save.
         val newEvents = List(event)
-        events.put(event.entityId, EventsWithVersion(1, newEvents))
+        putWitOptimisticLock(event.entityId, EventsWithVersion(1, newEvents), newEvents)
         notifyListeners(event)
         newEvents
     }
+
+  /**
+    * Check that the version we are processing has not been changed, if so throw an exception.
+    * if it's an insert, use 1 since on insert for a new entity 1 event only is used (the getOrElse part)
+    */
+  def putWitOptimisticLock(entityId: EntityId, eventWitVersion: EventsWithVersion, oldEvents: List[EventLike]) =
+    if (events.get(entityId).map(_.version).getOrElse(1) == oldEvents.length) events.put(entityId, eventWitVersion)
+    else throw new OptimisticLockException
 
   /**
     * Find all the latest events for a entity, if the entity is not in the map
