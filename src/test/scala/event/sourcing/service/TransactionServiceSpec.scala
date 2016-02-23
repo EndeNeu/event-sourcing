@@ -40,6 +40,7 @@ class TransactionServiceSpec extends WordSpecLike with Matchers with CommonSpec 
       val to = AccountService.openAccount(AccountOpenCommand(0))
       val transaction = TransactionService.createTransaction(TransactionCreateCommand(from, to, 100))
       TransactionService.executeTransaction(transaction.entityId, TransactionExecuteCommand()).state should be(TransactionInProgressState)
+      // wait for transaction execution
       Thread.sleep(500)
       TransactionService.findTransaction(transaction.entityId).state should be(TransactionFailedState)
 
@@ -49,6 +50,7 @@ class TransactionServiceSpec extends WordSpecLike with Matchers with CommonSpec 
       val to2 = AccountService.openAccount(AccountOpenCommand(0))
       val transaction2 = TransactionService.createTransaction(TransactionCreateCommand(from2, to2, 100))
       TransactionService.executeTransaction(transaction2.entityId, TransactionExecuteCommand()).state should be(TransactionInProgressState)
+      // wait for transaction execution
       Thread.sleep(500)
       TransactionService.findTransaction(transaction2.entityId).state should be(TransactionCompletedState)
 
