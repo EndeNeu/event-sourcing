@@ -17,6 +17,8 @@ trait EventStoreLike {
   // Find an event
   def find(entityId: EntityId): List[EventLike]
 
+  def find(entityId: EntityId, offset: Int, limit: Int): List[EventLike]
+
   def notifyListeners(e: EventLike): Unit
 
 }
